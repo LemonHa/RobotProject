@@ -12,7 +12,7 @@
  * @author Jing
  */
 
-class TransacPartsRecords extends CI_Model {
+class Transacpartsrecords extends CI_Model {
 // The data comes from http://www.quotery.com/top-100-funny-quotes-of-all-time/?PageSpeed=noscript
 
     public $data;
@@ -41,6 +41,16 @@ class TransacPartsRecords extends CI_Model {
 
     }
 
+    public function getAllPartsIDFromPurchaseID($which){
+        foreach ($this->data as $record){
+            if ($record['purchaseID'] == $which){                    
+                return $this->data->partID;
+            }
+        }
+        return null;
+    }          
+            
+            
     // retrieve a single part transaction record
     public function get($which)
     {

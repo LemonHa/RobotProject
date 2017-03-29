@@ -27,3 +27,7 @@ change log (newest last)
 
 * fixed Robot link by Lei
 
+* changed history view layout by Jing
+
+* added webhoot for test deployment by Lei
+
