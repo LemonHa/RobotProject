@@ -25,27 +25,22 @@ SET time_zone = "+00:00";
 --
 -- Table structure for table `parts`
 --
-
 DROP TABLE IF EXISTS `parts`;
-CREATE TABLE `parts` (
+CREATE TABLE `parts`(
   `id` varchar(6) NOT NULL PRIMARY KEY,
   `model` varchar(2) DEFAULT NULL,
   `piece` int(1) DEFAULT NULL,
   `plant` varchar(10) DEFAULT NULL,
   `stamp` DateTime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 --SELECT * FROM `parts` WHERE 1
 --INSERT parts VALUES("259b6c","r",1,"lemon", "2017-03-29 17:15:07")
 
-
 -- --------------------------------------------------------
-
 
 --
 -- Table structure for table `session`
 --
-
 CREATE TABLE IF NOT EXISTS `ci_sessions` (
         `id` varchar(128) NOT NULL,
         `ip_address` varchar(45) NOT NULL,
@@ -56,3 +51,22 @@ CREATE TABLE IF NOT EXISTS `ci_sessions` (
 ALTER TABLE ci_sessions ADD PRIMARY KEY (id);
 
 -- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `assembly`
+CREATE TABLE `assembly`(
+  `id` varchar(6) NOT NULL PRIMARY KEY,
+  `partTopCACode` varchar NOT NULL,
+  `partTopCACode` varchar NOT NULL,
+  `partTopCACode` varchar NOT NULL,
+  `dateTimeOfAssembly` DateTime NOT NULL,
+  `price` DOUBLE NOT NULL,
+  `robotId` int NOT NULL
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `shipment`
+CREATE TABLE `shipment` (
+  `id` varchar(6) NOT NULL PRIMARY KEY,
+  `robotID` INT NOT NULL ,
+  `soldPrice` DOUBLE NOT NULL ,
+  `dateTimeOfShipment` DateTime NOT NULL,
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
