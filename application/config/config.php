@@ -5,12 +5,42 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $config['menu_choices'] = array(
     'menudata' => array(
         array('name' => 'Home', 'link' => '/welcome'),
-        array('name' => 'Robot', 'link' => '/robot'),
         array('name' => 'Assembly', 'link' => '/assembly'),
         array('name' => 'Part', 'link' => '/part'),
         array('name' => 'Records', 'link' => '/Record'),
-    )
+    ),
+    'manage' => "<li class=\"dropdown\">
+                <a class=\"dropdown-toggle\" data-toggle=\"dropdown\" href=\"#\">Manage<b class=\"caret\"></b></a>
+                <ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"dLabel\">
+                    <li><a href=\"/manage\">Register</a></li>
+                    <li><a href=\"/shipment\">Sell Assembled Robots</a></li>
+                    <li><a href=\"/reboot\">Reboot</a></li>
+                </ul>
+            </li>"
 );
+
+// the menu 2
+$config['menu_choices2'] = array(
+    'menudata' => array(
+        array('name' => 'Home', 'link' => '/welcome'),
+        array('name' => 'Assembly', 'link' => '/assembly'),
+        array('name' => 'Part', 'link' => '/part'),
+        array('name' => 'Records', 'link' => '/Record'),
+    ),
+    'manage' => ""
+);
+
+// the menu 3 not for boss
+$config['menu_choices3'] = array(
+    'menudata' => array(
+        array('name' => 'Home', 'link' => '/welcome'),
+        array('name' => 'Assembly', 'link' => '/assembly'),
+        array('name' => 'Part', 'link' => '/part'),
+    ),
+    'manage' => ""
+);
+
+
 /*
 |--------------------------------------------------------------------------
 | Base Site URL
@@ -377,10 +407,10 @@ $config['encryption_key'] = '';
 | except for 'cookie_prefix' and 'cookie_httponly', which are ignored here.
 |
 */
-$config['sess_driver'] = 'files';
+$config['sess_driver'] = 'database';
 $config['sess_cookie_name'] = 'ci_session';
 $config['sess_expiration'] = 7200;
-$config['sess_save_path'] = NULL;
+$config['sess_save_path'] = 'ci_sessions';
 $config['sess_match_ip'] = FALSE;
 $config['sess_time_to_update'] = 300;
 $config['sess_regenerate_destroy'] = FALSE;
