@@ -139,6 +139,36 @@ class Record extends Application
         return $this->parser->parse('History/_itemNav',$parms,true);
     }
 
+
+    ///////////////////////////////////////////////////////
+
+//    // retrieve all of the transaction history entries
+//    public function all($column = 'transacDateTime', $filterModel = 'all', $filterLine = 'all')
+//    {
+//        $this->db->order_by($column, 'asc');
+//        $this->db->from('transactions');
+//
+//        if($filterLine != 'all') {
+//            //$this->db->where('line', $filterLine);
+//        }
+//        if($filterModel != 'all') {
+//            //$this->db->where('model', $filterModel);
+//        }
+//
+//        $query = $this->db->get();
+//        return $query->result();
+//    }
+//
+//    public function filter($filter, $column = 'timestamp') {
+//        $this->db->order_by($column, 'asc');
+//        $this->db->from('history');
+//        $this->db->where('line', "Household");
+//        $query = $this->db->get();
+//        return $query->result();
+//    }
+
+
+
     // Show a single page of todo items
     private function show_page($recordArray)
     {
@@ -147,74 +177,64 @@ class Record extends Application
         {
             if (!empty($record->status))
                 $record->status = $this->statuses->get($record->status)->name;
+            $parts = $this->getParts($record->transacType, $record->transactionID);
 
-           // if(){}
-
-            $finishedRecord['transactionID'] = $record->transactionID;
-            $finishedRecord['transacType'] = $record->transacType;
-            $finishedRecord['parts'] = $this->getParts($record->transacType, $record->transactionID);
-            $finishedRecord['transacMoney'] = $record->transacMoney;
-            $finishedRecord['transacDateTime'] = $record->transacDateTime;
-
-            $result .= $this->parser->parse('History/_history', (array) $finishedRecord, true);
+            $filterThisRecord = false;
+            if($this->filterLine != 'all') {
+//                echo " / / ". $this->filterLine. " : ";
+//                echo $parts['partLines'];
+                if (stripos($parts['partLines'], $this->filterLine) === false) {
+//                    echo "-> FILTERED OUT LINE | ";
+                    $filterThisRecord = true;
+                }
+            }
+            if($this->filterModel != 'all' && $filterThisRecord == false) {
+//                echo $this->filterLine. " : ";
+                //echo $this->filterModel;
+                if (stripos($parts['partModels'], $this->filterModel) === false) {
+//                    echo "-> FILTERED OUT MODEL / / ";
+                    $filterThisRecord = true;
+                }
+            }
+            if($filterThisRecord == false){
+                $finishedRecord['transactionID'] = $record->transactionID;
+                $finishedRecord['transacType'] = $record->transacType;
+                $finishedRecord['parts'] = $parts['partNames'];
+                $finishedRecord['transacMoney'] = $record->transacMoney;
+                $finishedRecord['transacDateTime'] = $record->transacDateTime;
+                $result .= $this->parser->parse('History/_history', (array) $finishedRecord, true);
+            }
 
         }
         $this->data['history'] = $result;
         $this->renderHistory();
     }
 
-    ///////////////////////////////////////////////////////
-
-    // retrieve all of the transaction history entries
-    public function all($column = 'transacDateTime', $filterModel = 'all', $filterLine = 'all')
-    {
-        $this->db->order_by($column, 'asc');
-        $this->db->from('transactions');
-
-        if($filterLine != 'all') {
-            //$this->db->where('line', $filterLine);
-        }
-        if($filterModel != 'all') {
-            //$this->db->where('model', $filterModel);
-        }
-
-        $query = $this->db->get();
-        return $query->result();
-    }
-
-    public function filter($filter, $column = 'timestamp') {
-        $this->db->order_by($column, 'asc');
-        $this->db->from('history');
-        $this->db->where('line', "Household");
-        $query = $this->db->get();
-        return $query->result();
-    }
-
-    private function getHistory($record, $filterModel, $filterLine){
-        $result = '';
-        echo $this->getParts($record->transacType, $record->transactionID);
-        $parts = $this->getParts($record->transacType, $record->transactionID);
-        $filterThisRecord = false;
-        if($filterLine != 'all') {
-            if (strpos($parts['partLines'], $filterLine) === false) {
-                $filterThisRecord = true;
-            }
-        }
-        if($filterModel != 'all') {
-            if (strpos($parts['partModels'], $filterLine) === false) {
-                $filterThisRecord = true;
-            }
-        }
-        if($filterThisRecord == false){
-            $finishedRecord['transactionID'] = $record->transactionID;
-            $finishedRecord['transacType'] = $record->transacType;
-            $finishedRecord['parts'] = $parts['partNames'];
-            $finishedRecord['transacMoney'] = $record->transacMoney;
-            $finishedRecord['transacDateTime'] = $record->transacDateTime;
-            $result .= $this->parser->parse('History/_history', (array) $finishedRecord, true);
-        }
-        return $result;
-    }
+//    private function getHistory($record){
+//        $result = '';
+//        $parts = $this->getParts($record->transacType, $record->transactionID);
+//
+//        $filterThisRecord = false;
+//        if($this->filterLine != 'all') {
+//            if (strpos($parts['partLines'], $this->filterLine) === false) {
+//                $filterThisRecord = true;
+//            }
+//        }
+//        if($this->filterModel != 'all') {
+//            if (strpos($parts['partModels'], $this->filterModel) === false) {
+//                $filterThisRecord = true;
+//            }
+//        }
+//        if($filterThisRecord == false){
+//            $finishedRecord['transactionID'] = $record->transactionID;
+//            $finishedRecord['transacType'] = $record->transacType;
+//            $finishedRecord['parts'] = $parts['partNames'];
+//            $finishedRecord['transacMoney'] = $record->transacMoney;
+//            $finishedRecord['transacDateTime'] = $record->transacDateTime;
+//            $result .= $this->parser->parse('History/_history', (array) $finishedRecord, true);
+//        }
+//        return $result;
+//    }
 
     private function getParts($transacType, $transacID){
         $partsData = array();
@@ -222,17 +242,17 @@ class Record extends Application
             $PartsRecords = $this->assemblyrecords->some('transactionID',$transacID);
             if (sizeof($PartsRecords) == 1) {
 //            NAMES
-            $partsData['partNames'] = $this->parts->get($PartsRecords[0]->partTopCACode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partBodyCACode)->partName. ", ".
+            $partsData['partNames'] = $this->parts->get($PartsRecords[0]->partTopCACode)->partName.", ".
+                $this->parts->get($PartsRecords[0]->partBodyCACode)->partName.", ".
                 $this->parts->get($PartsRecords[0]->partBtmCACode)->partName;
                 //echo $partsData['partNames'];
 //            MODELS
-            $partsData['partModels'] = $this->parts->get($PartsRecords[0]->partTopCACode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partBodyCACode)->model. ", ".
+            $partsData['partModels'] = $this->parts->get($PartsRecords[0]->partTopCACode)->model.", ".
+                $this->parts->get($PartsRecords[0]->partBodyCACode)->model.", ".
                 $this->parts->get($PartsRecords[0]->partBtmCACode)->model;
 //            LINES
-            $partsData['partLines'] = $this->parts->get($PartsRecords[0]->partTopCACode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partBodyCACode)->line. ", ".
+            $partsData['partLines'] = $this->parts->get($PartsRecords[0]->partTopCACode)->line.", ".
+                $this->parts->get($PartsRecords[0]->partBodyCACode)->line.", ".
                 $this->parts->get($PartsRecords[0]->partBtmCACode)->line;
             }
         }
@@ -240,109 +260,109 @@ class Record extends Application
             $PartsRecords = $this->purchasepartsrecords->some('transactionID',$transacID);
             if (sizeof($PartsRecords) == 1) {
 //            NAMES
-            $partsData['partNames'] = $this->parts->get($PartsRecords[0]->partonecacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->parttwocacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partthreecacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partfourcacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partfivecacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partsixcacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partsevencacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->parteightcacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partninecacode)->partName. ", ".
+            $partsData['partNames'] = $this->parts->get($PartsRecords[0]->partonecacode)->partName.", ".
+                $this->parts->get($PartsRecords[0]->parttwocacode)->partName.", ".
+                $this->parts->get($PartsRecords[0]->partthreecacode)->partName.", ".
+                $this->parts->get($PartsRecords[0]->partfourcacode)->partName.", ".
+                $this->parts->get($PartsRecords[0]->partfivecacode)->partName.", ".
+                $this->parts->get($PartsRecords[0]->partsixcacode)->partName.", ".
+                $this->parts->get($PartsRecords[0]->partsevencacode)->partName.", ".
+                $this->parts->get($PartsRecords[0]->parteightcacode)->partName.", ".
+                $this->parts->get($PartsRecords[0]->partninecacode)->partName.", ".
                 $this->parts->get($PartsRecords[0]->parttencacode)->partName;
 //            MODELS
-            $partsData['partModels'] = $this->parts->get($PartsRecords[0]->partonecacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->parttwocacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partthreecacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partfourcacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partfivecacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partsixcacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partsevencacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->parteightcacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partninecacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->parttencacode)->model. ", ";
+            $partsData['partModels'] = $this->parts->get($PartsRecords[0]->partonecacode)->model.", ".
+                $this->parts->get($PartsRecords[0]->parttwocacode)->model.", ".
+                $this->parts->get($PartsRecords[0]->partthreecacode)->model.", ".
+                $this->parts->get($PartsRecords[0]->partfourcacode)->model.", ".
+                $this->parts->get($PartsRecords[0]->partfivecacode)->model.", ".
+                $this->parts->get($PartsRecords[0]->partsixcacode)->model.", ".
+                $this->parts->get($PartsRecords[0]->partsevencacode)->model.", ".
+                $this->parts->get($PartsRecords[0]->parteightcacode)->model.", ".
+                $this->parts->get($PartsRecords[0]->partninecacode)->model.", ".
+                $this->parts->get($PartsRecords[0]->parttencacode)->model.", ";
 //            LINES
-            $partsData['partLines'] = $this->parts->get($PartsRecords[0]->partonecacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->parttwocacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partthreecacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partfourcacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partfivecacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partsixcacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partsevencacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->parteightcacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partninecacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->parttencacode)->line. ", ";
+            $partsData['partLines'] = $this->parts->get($PartsRecords[0]->partonecacode)->line.", ".
+                $this->parts->get($PartsRecords[0]->parttwocacode)->line.", ".
+                $this->parts->get($PartsRecords[0]->partthreecacode)->line.", ".
+                $this->parts->get($PartsRecords[0]->partfourcacode)->line.", ".
+                $this->parts->get($PartsRecords[0]->partfivecacode)->line.", ".
+                $this->parts->get($PartsRecords[0]->partsixcacode)->line.", ".
+                $this->parts->get($PartsRecords[0]->partsevencacode)->line.", ".
+                $this->parts->get($PartsRecords[0]->parteightcacode)->line.", ".
+                $this->parts->get($PartsRecords[0]->partninecacode)->line.", ".
+                $this->parts->get($PartsRecords[0]->parttencacode)->line.", ";
             }
         }
         else if($transacType=='shipment'){
             $PartsRecords = $this->shipmentrecords->some('transactionID',$transacID);
             if (sizeof($PartsRecords) == 1) {
 //            NAMES
-            $partsData['partNames'] = $this->parts->get($PartsRecords[0]->partTopCACode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partBodyCACode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partBtmCACode)->partName. ", ";
+            $partsData['partNames'] = $this->parts->get($PartsRecords[0]->partTopCACode)->partName.", ".
+                $this->parts->get($PartsRecords[0]->partBodyCACode)->partName.", ".
+                $this->parts->get($PartsRecords[0]->partBtmCACode)->partName;
 //            MODELS
-            $partsData['partModels'] = $this->parts->get($PartsRecords[0]->partTopCACode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partBodyCACode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partBtmCACode)->model. ", ";
+            $partsData['partModels'] = $this->parts->get($PartsRecords[0]->partTopCACode)->model.", ".
+                $this->parts->get($PartsRecords[0]->partBodyCACode)->model.", ".
+                $this->parts->get($PartsRecords[0]->partBtmCACode)->model;
 //            LINES
-            $partsData['partLines'] = $this->parts->get($PartsRecords[0]->partTopCACode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partBodyCACode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partBtmCACode)->line. ", ";
+            $partsData['partLines'] = $this->parts->get($PartsRecords[0]->partTopCACode)->line.", ".
+                $this->parts->get($PartsRecords[0]->partBodyCACode)->line.", ".
+                $this->parts->get($PartsRecords[0]->partBtmCACode)->line;
             }
         }
         else if($transacType=='return'){
             $PartsRecords = $this->returnpartrecords->some('transactionID',$transacID);
             if (sizeof($PartsRecords) == 1) {
                 //            NAMES
-                $partsData['partNames'] = $this->parts->get($PartsRecords[0]->partcacode)->partName;
+                $partsData['partNames'] = $PartsRecords[0]->partcacode ? $this->parts->get($PartsRecords[0]->partcacode)->partName : "";
 //            MODELS
-                $partsData['partModels'] = $this->parts->get($PartsRecords[0]->partcacode)->model;
+                $partsData['partModels'] = $PartsRecords[0]->partcacode ? $this->parts->get($PartsRecords[0]->partcacode)->model : "";
 //            LINES
-                $partsData['partLines'] = $this->parts->get($PartsRecords[0]->partcacode)->line;
+                $partsData['partLines'] = $PartsRecords[0]->partcacode ? $this->parts->get($PartsRecords[0]->partcacode)->line : "";
             }
         }
         else if($transacType=='build'){
             $PartsRecords = $this->buildpartsrecords->some('transactionID',$transacID);
             if (sizeof($PartsRecords) == 1) {
 //            NAMES
-            $partsData['partNames'] = $this->parts->get($PartsRecords[0]->partonecacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->parttwocacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partthreecacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partfourcacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partfivecacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partsixcacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partsevencacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->parteightcacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->partninecacode)->partName. ", ".
-                $this->parts->get($PartsRecords[0]->parttencacode)->partName. ", ";
+            $partsData['partNames'] = $PartsRecords[0]->partonecacode ? $this->parts->get($PartsRecords[0]->partonecacode)->partName : "";
+                $partsData['partNames'] .= $PartsRecords[0]->parttwocacode ? ", ".$this->parts->get($PartsRecords[0]->parttwocacode)->partName : "";
+                $partsData['partNames'] .= $PartsRecords[0]->partthreecacode ? ", ".$this->parts->get($PartsRecords[0]->partthreecacode)->partName : "";
+                $partsData['partNames'] .= $PartsRecords[0]->partfourcacode ? ", ".$this->parts->get($PartsRecords[0]->partfourcacode)->partName : "";
+                $partsData['partNames'] .= $PartsRecords[0]->partfivecacode ? ", ".$this->parts->get($PartsRecords[0]->partfivecacode)->partName : "";
+                $partsData['partNames'] .= $PartsRecords[0]->partsixcacode ? ", ".$this->parts->get($PartsRecords[0]->partsixcacode)->partName : "";
+                $partsData['partNames'] .= $PartsRecords[0]->partsevencacode ? ", ".$this->parts->get($PartsRecords[0]->partsevencacode)->partName : "";
+                $partsData['partNames'] .= $PartsRecords[0]->parteightcacode ? ", ".$this->parts->get($PartsRecords[0]->parteightcacode)->partName : "";
+                $partsData['partNames'] .= $PartsRecords[0]->partninecacode ? ", ".$this->parts->get($PartsRecords[0]->partninecacode)->partName : "";
+                $partsData['partNames'] .= $PartsRecords[0]->parttencacode ? ", ".$this->parts->get($PartsRecords[0]->parttencacode)->partName : "";
 //            MODELS
-            $partsData['partModels'] = $this->parts->get($PartsRecords[0]->partonecacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->parttwocacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partthreecacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partfourcacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partfivecacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partsixcacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partsevencacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->parteightcacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->partninecacode)->model. ", ".
-                $this->parts->get($PartsRecords[0]->parttencacode)->model. ", ";
+            $partsData['partModels'] = $PartsRecords[0]->partonecacode ? $this->parts->get($PartsRecords[0]->partonecacode)->model : "";
+                $partsData['partModels'] .= $PartsRecords[0]->parttwocacode ? ", ".$this->parts->get($PartsRecords[0]->parttwocacode)->model : "";
+                $partsData['partModels'] .= $PartsRecords[0]->partthreecacode ? ", ".$this->parts->get($PartsRecords[0]->partthreecacode)->model : "";
+                $partsData['partModels'] .= $PartsRecords[0]->partfourcacode ? ", ".$this->parts->get($PartsRecords[0]->partfourcacode)->model : "";
+                $partsData['partModels'] .= $PartsRecords[0]->partfivecacode ? ", ".$this->parts->get($PartsRecords[0]->partfivecacode)->model : "";
+                $partsData['partModels'] .= $PartsRecords[0]->partsixcacode ? ", ".$this->parts->get($PartsRecords[0]->partsixcacode)->model : "";
+                $partsData['partModels'] .= $PartsRecords[0]->partsevencacode ? ", ".$this->parts->get($PartsRecords[0]->partsevencacode)->model : "";
+                $partsData['partModels'] .= $PartsRecords[0]->parteightcacode ? ", ".$this->parts->get($PartsRecords[0]->parteightcacode)->model : "";
+                $partsData['partModels'] .= $PartsRecords[0]->partninecacode ? ", ".$this->parts->get($PartsRecords[0]->partninecacode)->model : "";
+                $partsData['partModels'] .= $PartsRecords[0]->parttencacode ? ", ".$this->parts->get($PartsRecords[0]->parttencacode)->model : "";
 //            LINES
-            $partsData['partLines'] = $this->parts->get($PartsRecords[0]->partonecacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->parttwocacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partthreecacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partfourcacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partfivecacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partsixcacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partsevencacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->parteightcacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->partninecacode)->line. ", ".
-                $this->parts->get($PartsRecords[0]->parttencacode)->line. ", ";
+            $partsData['partLines'] = $PartsRecords[0]->partonecacode ? $this->parts->get($PartsRecords[0]->partonecacode)->line : "";
+                $partsData['partLines'] .= $PartsRecords[0]->parttwocacode ? ", ".$this->parts->get($PartsRecords[0]->parttwocacode)->line : "";
+                $partsData['partLines'] .= $PartsRecords[0]->partthreecacode ? ", ".$this->parts->get($PartsRecords[0]->partthreecacode)->line : "";
+                $partsData['partLines'] .= $PartsRecords[0]->partfourcacode ? ", ".$this->parts->get($PartsRecords[0]->partfourcacode)->line : "";
+                $partsData['partLines'] .= $PartsRecords[0]->partfivecacode ? ", ".$this->parts->get($PartsRecords[0]->partfivecacode)->line : "";
+                $partsData['partLines'] .= $PartsRecords[0]->partsixcacode ? ", ".$this->parts->get($PartsRecords[0]->partsixcacode)->line : "";
+                $partsData['partLines'] .= $PartsRecords[0]->partsevencacode ? ", ".$this->parts->get($PartsRecords[0]->partsevencacode)->line : "";
+                $partsData['partLines'] .= $PartsRecords[0]->parteightcacode ? ", ".$this->parts->get($PartsRecords[0]->parteightcacode)->line : "";
+                $partsData['partLines'] .= $PartsRecords[0]->partninecacode ? ", ".$this->parts->get($PartsRecords[0]->partninecacode)->line : "";
+                $partsData['partLines'] .= $PartsRecords[0]->parttencacode ? ", ".$this->parts->get($PartsRecords[0]->parttencacode)->line : "";
             }
         }
-        echo $partsData['partNames'] . "|";
-        echo $partsData['partLines'] . "|";
-        echo $partsData['partModels'] . "| |";
+//        echo $partsData['partNames'] . "|";
+//        echo $partsData['partLines'] . "|";
+//        echo $partsData['partModels'] . "| |";
         return $partsData;
     }
 
